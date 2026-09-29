@@ -36,31 +36,25 @@
             font-family: 'Nunito', sans-serif;
             overflow-x: hidden;
         }
-
         .comic-border {
             border: 4px solid #000000;
         }
-        
         .comic-shadow-pink {
             box-shadow: 6px 6px 0px 0px #ff0080;
             transition: all 0.2s ease-in-out;
         }
-        
         .comic-shadow-pink:hover {
             transform: translate(-4px, -4px);
             box-shadow: 10px 10px 0px 0px #ff0080;
         }
-
         .comic-shadow-purple {
             box-shadow: 6px 6px 0px 0px #9d00ff;
             transition: all 0.2s ease-in-out;
         }
-        
         .comic-shadow-purple:hover {
             transform: translate(-4px, -4px);
             box-shadow: 10px 10px 0px 0px #9d00ff;
         }
-
         .speed-lines {
             background: 
                 repeating-radial-gradient(
@@ -71,7 +65,6 @@
                     rgba(157, 0, 255, 0.05) 20px
                 ), #1a0b2e;
         }
-
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -79,7 +72,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -87,10 +79,7 @@
         .toast-enter {
             animation: slideInRight 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
-
-        .star-rating input {
-            display: none;
-        }
+        .star-rating input { display: none; }
         .star-rating label {
             cursor: pointer;
             color: #4a4a4a;
@@ -245,7 +234,9 @@
             
             <div class="w-full md:w-2/5 p-6 bg-manga-dark border-r-0 md:border-r-4 border-black flex flex-col justify-between">
                 <div>
-                    <img id="modal-img" src="" alt="Capa" class="w-full comic-border shadow-[4px_4px_0px_0px_#9d00ff] mb-4 object-cover aspect-[3/4]">
+                    <!-- Container da imagem injetado via JS -->
+                    <div id="modal-img-container"></div>
+                    
                     <div id="modal-categories" class="flex gap-2 mb-2 text-xs font-black flex-wrap"></div>
                     <h2 id="modal-title" class="text-3xl font-bangers text-white mb-2 drop-shadow-[2px_2px_0px_#9d00ff]">Título</h2>
                     <p id="modal-synopsis" class="text-gray-300 text-sm font-bold leading-relaxed bg-black p-3 comic-border mb-4"></p>
@@ -319,13 +310,34 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-[70] flex flex-col gap-3 pointer-events-none"></div>
 
     <script>
+        function safeGetStorage(key) {
+            try { return localStorage.getItem(key); } catch(e) { return null; }
+        }
+        function safeSetStorage(key, value) {
+            try { localStorage.setItem(key, value); } catch(e) { console.log('Storage bloqueado localmente'); }
+        }
+        function safeRemoveStorage(key) {
+            try { localStorage.removeItem(key); } catch(e) {}
+        }
+
+        // FUNÇÃO INTELIGENTE DE CAPAS: Você não precisa mais escrever o nome da capa nos dados!
+        // Ela pega o nome da obra e testa todas as variações (Normal, TUDO MAIÚSCULO, tudo minúsculo e .png)
+        function getImgTag(manga, classes) {
+            let firstTry = manga.cover && manga.cover.startsWith('http') ? manga.cover : `${manga.title}.jpg`;
+            const upper = `${manga.title.toUpperCase()}.jpg`;
+            const lower = `${manga.title.toLowerCase()}.jpg`;
+            const png = `${manga.title}.png`;
+            const fallbackScript = `if(!this.dataset.s){this.dataset.s=1;this.src='${upper}';}else if(this.dataset.s==1){this.dataset.s=2;this.src='${lower}';}else if(this.dataset.s==2){this.dataset.s=3;this.src='${png}';}else{this.src='https://via.placeholder.com/400x600/1a0b2e/ff0080?text=SEM+CAPA';}`;
+            return `<img src="${firstTry}" onerror="${fallbackScript}" alt="${manga.title}" class="${classes}">`;
+        }
+
         let currentUser = null; 
         let userRatings = {}; 
         let isAdultVerified = false; 
 
-        // O Hero Killer continua apontando para a sua imagem local 'image_1d57de.jpg'
+        // Repare que apaguei o 'cover' do Hero Killer aqui. Ele vai achar sua foto automaticamente!
         const top10Data = [
-            { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", cover: "image_1d57de.jpg", updated: true },
+            { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
             { id: 101, title: "One Piece", views: "10.5M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "A jornada épica de Luffy em busca do tesouro lendário One Piece para se tornar o Rei dos Piratas.", cover: "https://images.unsplash.com/photo-1606214306351-866418386348?auto=format&fit=crop&q=80&w=400&h=600", updated: true },
             { id: 102, title: "Jujutsu Kaisen", views: "8.2M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "Feiticeiros enfrentando maldições aterrorizantes em batalhas espetaculares.", cover: "https://images.unsplash.com/photo-1618331835717-801e976710b2?auto=format&fit=crop&q=80&w=400&h=600", updated: false },
             { id: 103, title: "Solo Leveling", views: "7.9M", categories: ["Webtoon", "Ação", "Fantasia", "Isekai"], synopsis: "O caçador mais fraco do mundo ganha o poder de subir de nível infinitamente.", cover: "https://images.unsplash.com/photo-1541562232579-512a21360020?auto=format&fit=crop&q=80&w=400&h=600", updated: true },
@@ -340,8 +352,9 @@
         const allCategories = ["Recomendados para Você", "Todos", "Webtoon", "One-Shot", "Shounen", "Shoujo", "Seinen", "Josei", "Isekai", "Romance", "Fantasia", "Terror", "Esportes", "Yuri", "Yaoi", "+18"];
         let selectedCategories = [];
 
+        // Sem 'cover' do Hero Killer aqui também!
         const mangasData = [
-            { id: 1, title: "Hero Killer", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", cover: "image_1d57de.jpg", updated: true },
+            { id: 1, title: "Hero Killer", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
             { id: 2, title: "Lâmina do Destino", categories: ["Shounen", "Fantasia"], synopsis: "Um jovem espadachim descobre uma espada amaldiçoada que abriga a alma de um demônio milenar.", cover: "https://images.unsplash.com/photo-1606214306351-866418386348?auto=format&fit=crop&q=80&w=600&h=800", updated: true },
             { id: 3, title: "Doces Memórias", categories: ["Shoujo", "Romance"], synopsis: "Sakura se transfere para uma nova escola no ensino médio e se senta ao lado de Kenji.", cover: "https://images.unsplash.com/photo-1580477659142-b8a74e5cb409?auto=format&fit=crop&q=80&w=600&h=800", updated: false },
             { id: 4, title: "Cyber City Zero", categories: ["Seinen", "Ficção"], synopsis: "No ano de 2099, a megacorporação Nexus controla a mente dos cidadãos através de implantes neurais.", cover: "https://images.unsplash.com/photo-1618331835717-801e976710b2?auto=format&fit=crop&q=80&w=600&h=800", updated: false },
@@ -391,6 +404,7 @@
 
         function loadCrunchyrollNews() {
             const newsGrid = document.getElementById('crunchyroll-news-grid');
+            if(!newsGrid) return;
             newsGrid.innerHTML = `
                 <a href="https://www.crunchyroll.com/news" target="_blank" rel="nofollow noopener" class="bg-manga-dark comic-border comic-shadow-pink p-5 flex flex-col justify-between group hover:no-underline">
                     <div>
@@ -420,6 +434,7 @@
         }
 
         function renderFilters() {
+            if(!filterContainer) return;
             filterContainer.innerHTML = '';
             allCategories.forEach(category => {
                 const btn = document.createElement('button');
@@ -450,7 +465,6 @@
                             selectedCategories.push(category);
                         }
                     }
-
                     renderFilters(); 
                     renderMangas(); 
                 };
@@ -473,7 +487,7 @@
 
             if (age >= 18) {
                 isAdultVerified = true;
-                localStorage.setItem('mangaVerseAdultVerified', 'true');
+                safeSetStorage('mangaVerseAdultVerified', 'true');
                 ageVerifyModal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 errorMsg.classList.add('hidden');
@@ -499,6 +513,7 @@
         }
 
         function renderTop10() {
+            if(!top10Container) return;
             top10Container.innerHTML = '';
             top10Data.forEach((manga, index) => {
                 const isFirst = index === 0;
@@ -509,7 +524,7 @@
                 card.innerHTML = `
                     ${updateBadge}
                     <div class="relative comic-border ${isFirst ? 'comic-shadow-pink border-manga-pink' : 'shadow-[4px_4px_0px_0px_#000]'} overflow-hidden h-60 md:h-72 bg-manga-dark">
-                        <img src="${manga.cover}" class="w-full h-full object-cover pointer-events-none">
+                        ${getImgTag(manga, "w-full h-full object-cover pointer-events-none")}
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3 text-center">
                             <span class="block font-bangers text-white text-xl drop-shadow-[2px_2px_0px_#000] truncate">${manga.title}</span>
                         </div>
@@ -561,6 +576,7 @@
         }
 
         function renderMangas() {
+            if(!mangaGrid) return;
             mangaGrid.innerHTML = '';
             const filteredMangas = getFilteredMangas();
 
@@ -579,7 +595,7 @@
                     ${updateBadge}
                     ${userRatingBadge}
                     <div class="relative overflow-hidden aspect-[3/4] border-b-4 border-black bg-manga-dark">
-                        <img src="${manga.cover}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        ${getImgTag(manga, "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110")}
                     </div>
                     <div class="p-4 flex-1 flex flex-col">
                         <div class="flex gap-1 flex-wrap mb-2">
@@ -604,7 +620,7 @@
 
         function openModal(manga) {
             currentActiveMangaId = manga.id;
-            document.getElementById('modal-img').src = manga.cover;
+            document.getElementById('modal-img-container').innerHTML = getImgTag(manga, "w-full comic-border shadow-[4px_4px_0px_0px_#9d00ff] mb-4 object-cover aspect-[3/4]");
             document.getElementById('modal-title').innerText = manga.title;
             document.getElementById('modal-synopsis').innerText = manga.synopsis;
             document.getElementById('modal-categories').innerHTML = manga.categories.map(cat => `<span class="bg-manga-pink text-white px-2 py-1 comic-border uppercase">${cat}</span>`).join('');
@@ -634,15 +650,19 @@
                 }
                 const score = parseInt(e.target.value);
                 userRatings[currentActiveMangaId] = score;
-                localStorage.setItem('mangaVerseRatings', JSON.stringify(userRatings));
+                safeSetStorage('mangaVerseRatings', JSON.stringify(userRatings));
                 document.getElementById('user-current-rating').innerText = `${score} de 5 Estrelas`;
                 renderMangas(); 
             };
         });
 
-        document.getElementById('close-modal').onclick = () => { modal.classList.add('hidden'); document.body.style.overflow = 'auto'; };
+        const closeModalBtn = document.getElementById('close-modal');
+        if(closeModalBtn) {
+            closeModalBtn.onclick = () => { modal.classList.add('hidden'); document.body.style.overflow = 'auto'; };
+        }
 
         function renderComments() {
+            if(!commentsList) return;
             commentsList.innerHTML = '';
             const comments = commentsDB[currentActiveMangaId] || [];
             if (comments.length === 0) {
@@ -661,16 +681,18 @@
             commentsList.scrollTop = commentsList.scrollHeight;
         }
 
-        btnSendComment.onclick = () => {
-            if (!currentUser) return;
-            const text = newCommentInput.value.trim();
-            if (text) {
-                if (!commentsDB[currentActiveMangaId]) commentsDB[currentActiveMangaId] = [];
-                const username = currentUser.split('@')[0];
-                commentsDB[currentActiveMangaId].push({ user: username, text: text });
-                newCommentInput.value = ''; renderComments();
-            }
-        };
+        if(btnSendComment) {
+            btnSendComment.onclick = () => {
+                if (!currentUser) return;
+                const text = newCommentInput.value.trim();
+                if (text) {
+                    if (!commentsDB[currentActiveMangaId]) commentsDB[currentActiveMangaId] = [];
+                    const username = currentUser.split('@')[0];
+                    commentsDB[currentActiveMangaId].push({ user: username, text: text });
+                    newCommentInput.value = ''; renderComments();
+                }
+            };
+        }
 
         function updateAuthUI() {
             const btnLogin = document.getElementById('btn-login-modal');
@@ -679,75 +701,85 @@
             const loggedOutComment = document.getElementById('logged-out-comment');
             const emailDisplay = document.getElementById('user-email-display');
 
+            if(!btnLogin) return;
+
             if (currentUser) {
                 btnLogin.classList.add('hidden'); userProfile.classList.remove('hidden'); userProfile.classList.add('flex');
                 emailDisplay.innerText = currentUser;
-                loggedInComment.classList.remove('hidden'); loggedOutComment.classList.add('hidden');
+                if(loggedInComment) loggedInComment.classList.remove('hidden'); 
+                if(loggedOutComment) loggedOutComment.classList.add('hidden');
             } else {
                 btnLogin.classList.remove('hidden'); userProfile.classList.add('hidden'); userProfile.classList.remove('flex');
-                loggedInComment.classList.add('hidden'); loggedOutComment.classList.remove('hidden');
+                if(loggedInComment) loggedInComment.classList.add('hidden'); 
+                if(loggedOutComment) loggedOutComment.classList.remove('hidden');
             }
         }
 
         function openLoginModal() {
             loginModal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
-            if(!modal.classList.contains('hidden')) modal.classList.add('hidden');
+            if(modal && !modal.classList.contains('hidden')) modal.classList.add('hidden');
         }
         function closeLoginModalFunc() { loginModal.classList.add('hidden'); document.body.style.overflow = 'auto'; }
 
-        document.getElementById('btn-login-modal').onclick = openLoginModal;
-        document.getElementById('close-login').onclick = closeLoginModalFunc;
+        const btnLoginModal = document.getElementById('btn-login-modal');
+        if(btnLoginModal) btnLoginModal.onclick = openLoginModal;
+        const closeLoginBtn = document.getElementById('close-login');
+        if(closeLoginBtn) closeLoginBtn.onclick = closeLoginModalFunc;
 
         function handleAuth() {
             const emailInput = document.getElementById('auth-email').value;
             const passInput = document.getElementById('auth-password').value;
             if (emailInput && passInput) {
                 currentUser = emailInput;
-                localStorage.setItem('mangaVerseUser', currentUser);
+                safeSetStorage('mangaVerseUser', currentUser);
                 updateAuthUI(); closeLoginModalFunc();
                 document.getElementById('auth-password').value = '';
             }
         }
 
-        document.getElementById('btn-logout').onclick = () => {
-            currentUser = null; localStorage.removeItem('mangaVerseUser'); updateAuthUI();
-        };
+        const btnLogout = document.getElementById('btn-logout');
+        if(btnLogout) {
+            btnLogout.onclick = () => {
+                currentUser = null; safeRemoveStorage('mangaVerseUser'); updateAuthUI();
+            };
+        }
 
         const scrollLeftBtn = document.getElementById('scroll-left');
         const scrollRightBtn = document.getElementById('scroll-right');
-        const top10Container = document.getElementById('top10-container');
 
-        scrollLeftBtn.onclick = () => { top10Container.scrollBy({ left: -300, behavior: 'smooth' }); };
-        scrollRightBtn.onclick = () => { top10Container.scrollBy({ left: 300, behavior: 'smooth' }); };
+        if(scrollLeftBtn && top10Container) {
+            scrollLeftBtn.onclick = () => { top10Container.scrollBy({ left: -300, behavior: 'smooth' }); };
+            scrollRightBtn.onclick = () => { top10Container.scrollBy({ left: 300, behavior: 'smooth' }); };
 
-        let isDown = false;
-        let startX;
-        let scrollLeftPos;
+            let isDown = false;
+            let startX;
+            let scrollLeftPos;
 
-        top10Container.addEventListener('mousedown', (e) => {
-            isDown = true;
-            top10Container.classList.add('cursor-grabbing');
-            startX = e.pageX - top10Container.offsetLeft;
-            scrollLeftPos = top10Container.scrollLeft;
-        });
-        top10Container.addEventListener('mouseleave', () => { isDown = false; top10Container.classList.remove('cursor-grabbing'); });
-        top10Container.addEventListener('mouseup', () => { isDown = false; top10Container.classList.remove('cursor-grabbing'); });
-        top10Container.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - top10Container.offsetLeft;
-            const walk = (x - startX) * 2;
-            top10Container.scrollLeft = scrollLeftPos - walk;
-        });
+            top10Container.addEventListener('mousedown', (e) => {
+                isDown = true;
+                top10Container.classList.add('cursor-grabbing');
+                startX = e.pageX - top10Container.offsetLeft;
+                scrollLeftPos = top10Container.scrollLeft;
+            });
+            top10Container.addEventListener('mouseleave', () => { isDown = false; top10Container.classList.remove('cursor-grabbing'); });
+            top10Container.addEventListener('mouseup', () => { isDown = false; top10Container.classList.remove('cursor-grabbing'); });
+            top10Container.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - top10Container.offsetLeft;
+                const walk = (x - startX) * 2;
+                top10Container.scrollLeft = scrollLeftPos - walk;
+            });
+        }
 
         function init() {
-            const savedUser = localStorage.getItem('mangaVerseUser');
+            const savedUser = safeGetStorage('mangaVerseUser');
             if(savedUser) currentUser = savedUser;
 
-            const savedRatings = localStorage.getItem('mangaVerseRatings');
+            const savedRatings = safeGetStorage('mangaVerseRatings');
             if(savedRatings) userRatings = JSON.parse(savedRatings);
 
-            const verifiedAdult = localStorage.getItem('mangaVerseAdultVerified');
+            const verifiedAdult = safeGetStorage('mangaVerseAdultVerified');
             if(verifiedAdult === 'true') isAdultVerified = true;
 
             renderTop10(); 
