@@ -6,6 +6,8 @@
     <meta name="robots" content="index, follow">
     <title>Yuneri - Comunidade de Mangás e Webtoons</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importando a biblioteca do Supabase para JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -54,10 +56,10 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-4xl font-bangers tracking-widest text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">YUNERI <span class="text-2xl text-manga-purple drop-shadow-none">ゆねり</span></h1>
             <div id="auth-section">
-                <button id="btn-login-modal" class="bg-manga-purple text-white font-black py-2 px-6 comic-border comic-shadow-pink uppercase tracking-wider">Entrar</button>
+                <button id="btn-login-modal" class="bg-manga-purple text-white font-black py-2 px-6 comic-border comic-shadow-pink uppercase tracking-wider">Entrar / Registar</button>
                 <div id="user-profile" class="hidden flex items-center gap-4">
                     <div class="text-right">
-                        <p class="text-xs font-bold text-black uppercase">Otaku Level 99</p>
+                        <p class="text-xs font-bold text-black uppercase">Membro Oficial</p>
                         <p id="user-email-display" class="font-black text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">usuario@email.com</p>
                     </div>
                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=9d00ff" alt="Avatar" class="w-12 h-12 rounded-full comic-border bg-white">
@@ -198,46 +200,58 @@
         </div>
     </div>
 
+    <!-- Modal de Autenticação Yuneri -->
     <div id="login-modal" class="fixed inset-0 bg-black/90 hidden z-[60] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-manga-pink p-8 w-full max-w-md comic-border comic-shadow-purple relative">
             <button id="close-login" class="absolute top-2 right-4 text-4xl font-black text-black hover:text-white">&times;</button>
-            <h2 class="text-4xl font-bangers text-black text-center mb-6 uppercase">Acesso Restrito</h2>
-            <form onsubmit="event.preventDefault(); handleAuth();" class="space-y-4">
+            <h2 class="text-4xl font-bangers text-black text-center mb-2 uppercase">CONTA YUNERI</h2>
+            <p id="auth-mode-desc" class="text-black font-bold text-xs text-center mb-6">Insere o teu e-mail e senha para Entrar, Registar ou Recuperar!</p>
+            <form onsubmit="event.preventDefault(); handleSupabaseAuth();" class="space-y-4">
                 <div>
                     <label class="block text-black font-black mb-1">E-mail</label>
-                    <input type="email" id="auth-email" required class="w-full p-3 border-4 border-black font-bold text-black">
+                    <input type="email" id="auth-email" required class="w-full p-3 border-4 border-black font-bold text-black bg-white">
                 </div>
                 <div>
                     <label class="block text-black font-black mb-1">Senha</label>
-                    <input type="password" id="auth-password" required class="w-full p-3 border-4 border-black font-bold text-black">
+                    <input type="password" id="auth-password" class="w-full p-3 border-4 border-black font-bold text-black bg-white">
                 </div>
-                <button type="submit" class="w-full bg-black text-manga-pink font-bangers text-3xl py-3 comic-border hover:bg-manga-purple hover:text-white transition-colors mt-4">ENTRAR</button>
+                <div class="flex flex-col gap-2 pt-2">
+                    <div class="flex gap-2">
+                        <button type="submit" onclick="authAction='signin'" class="flex-1 bg-black text-manga-pink font-bangers text-xl py-2 comic-border hover:bg-manga-purple hover:text-white transition-colors">ENTRAR</button>
+                        <button type="submit" onclick="authAction='signup'" class="flex-1 bg-white text-black font-bangers text-xl py-2 comic-border hover:bg-black hover:text-white transition-colors">REGISTAR</button>
+                    </div>
+                    <button type="button" onclick="handlePasswordReset()" class="w-full bg-yellow-400 text-black font-bangers text-sm py-1.5 comic-border hover:bg-yellow-500 transition-colors uppercase tracking-wider">Esqueci a minha senha</button>
+                </div>
             </form>
+            <p id="auth-feedback" class="text-black font-black text-xs text-center mt-4"></p>
         </div>
     </div>
 
     <div id="toast-container" class="fixed bottom-4 right-4 z-[70] flex flex-col gap-3 pointer-events-none"></div>
 
     <script>
-        function safeGetStorage(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
-        function safeSetStorage(key, value) { try { localStorage.setItem(key, value); } catch(e) {} }
-        function safeRemoveStorage(key) { try { localStorage.removeItem(key); } catch(e) {} }
+        // CONFIGURAÇÃO DO SUPABASE
+        const SUPABASE_URL = 'https://dfyqvolgczhqcvzmywo.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_oN6pi3cbVEbyRn03808mtQ_PT3dk...';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Sistema Inteligente de Capas Automáticas (Procura pelo nome exato do título em .jpg, .JPG, .png e suporta fallback)
+        // Sistema Inteligente de Capas Automáticas
         function getImgTag(manga, classes) {
             let primary = `${manga.title}.jpg`;
             const upper = `${manga.title.toUpperCase()}.jpg`;
             const lower = `${manga.title.toLowerCase()}.jpg`;
             const png = `${manga.title}.png`;
-            const fallbackScript = `if(!this.dataset.s){this.dataset.s=1;this.src='${upper}';}else if(this.dataset.s==1){this.dataset.s=2;this.src='${lower}';}else if(this.dataset.s==2){this.dataset.s==3;this.src='${png}';}else{this.src='https://via.placeholder.com/400x600/1a0b2e/ff0080?text=${encodeURIComponent(manga.title)}';}`;
+            const fallbackScript = `if(!this.dataset.s){this.dataset.s=1;this.src='${upper}';}else if(this.dataset.s==1){this.dataset.s=2;this.src='${lower}';}else if(this.dataset.s==2){this.dataset.s=3;this.src='${png}';}else{this.src='https://via.placeholder.com/400x600/1a0b2e/ff0080?text=${encodeURIComponent(manga.title)}';}`;
             return `<img src="${primary}" onerror="${fallbackScript}" alt="${manga.title}" class="${classes}">`;
         }
 
         let currentUser = null; 
         let userRatings = {}; 
         let isAdultVerified = false; 
+        let authAction = 'signin';
 
-        // Lista oficial contendo apenas os 10 mangás reais do teu projeto
+        // TOP 10 Mais Lidos (Exclusivo para o carrossel de destaque - de 1 a 10)
         const top10Data = [
             { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
             { id: 2, title: "One Piece", views: "10.5M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "A jornada épica de Luffy em busca do tesouro lendário One Piece para se tornar o Rei dos Piratas.", updated: true },
@@ -251,15 +265,31 @@
             { id: 10, title: "Blue Lock", views: "3.5M", categories: ["Esportes", "Shounen"], synopsis: "O projeto radical para criar o maior artilheiro do Japão.", updated: true }
         ];
 
+        // Catálogo Completo (Com contagem independente de IDs de 1 até ao total de obras)
+        const mangasData = [
+            { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
+            { id: 2, title: "One Piece", views: "10.5M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "A jornada épica de Luffy em busca do tesouro lendário One Piece para se tornar o Rei dos Piratas.", updated: true },
+            { id: 3, title: "Jujutsu Kaisen", views: "8.2M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "Feiticeiros enfrentando maldições aterrorizantes em batalhas espetaculares.", updated: false },
+            { id: 4, title: "Solo Leveling", views: "7.9M", categories: ["Webtoon", "Ação", "Fantasia", "Isekai"], synopsis: "O caçador mais fraco do mundo ganha o poder de subir de nível infinitamente.", updated: true },
+            { id: 5, title: "Chainsaw Man", views: "6.4M", categories: ["Shounen", "Seinen", "Ação"], synopsis: "Denji vive como um caçador de demônios fundido com um cão demônio de serra elétrica.", updated: false },
+            { id: 6, title: "Berserk", views: "5.1M", categories: ["Seinen", "Fantasia", "Terror"], synopsis: "A trágica e sombria jornada de Guts, o Espadachim Negro.", updated: false },
+            { id: 7, title: "Spy x Family", views: "4.8M", categories: ["Shounen", "Comédia"], synopsis: "Um espião, uma assassina e uma telepata fingem ser uma família perfeita.", updated: true },
+            { id: 8, title: "Vagabond", views: "4.2M", categories: ["Seinen", "Ação"], synopsis: "A lendária vida do espadachim Miyamoto Musashi.", updated: false },
+            { id: 9, title: "Bleach", views: "3.9M", categories: ["Shounen", "Fantasia"], synopsis: "Ichigo Kurosaki ganha poderes de Ceifador de Almas.", updated: false },
+            { id: 10, title: "Blue Lock", views: "3.5M", categories: ["Esportes", "Shounen"], synopsis: "O projeto radical para criar o maior artilheiro do Japão.", updated: true },
+            { id: 11, title: "Me apaixonei pela vilã", views: "6.8M", categories: ["Isekai", "Romance", "Yuri", "Fantasia"], synopsis: "Uma jovem reencarna como a protagonista do seu jogo favorito e decide conquistar a antagonista Claire François!", updated: true },
+            { id: 12, title: "O cara que estou a fim não é um cara", views: "6.1M", categories: ["Romance", "Yuri", "Slice of Life"], synopsis: "Uma garota apaixona-se pelo misterioso atendente de uma loja de discos, sem saber que se trata de uma colega de turma disfarçada.", updated: true },
+            { id: 13, title: "Mahou Shoujo ni Akogarete", views: "5.7M", categories: ["Magical Girl", "Comédia", "+18"], synopsis: "Uma fã de garotas mágicas acaba por se juntar acidentalmente às forças do mal como uma sádica líder de vilãs.", updated: false },
+            { id: 14, title: "Her Pet (Pito)", views: "5.2M", categories: ["Romance", "Drama", "+18","Yuri"], synopsis: "Uma intensa e complexa relação de dependência emocional e dinâmica de poder entre personagens marcantes.", updated: false },
+            { id: 15, title: "A Story about a Very Lonely Female CEO who Falls for a Lesbian Prostitute in Seconds", views: "4.9M", categories: ["Romance", "Yuri", "Drama"], synopsis: "A vida de uma executiva de sucesso muda drasticamente num piscar de olhos ao cruzar-se com alguém inesperado.", updated: true },
+            { id: 16, title: "Alter Ego", views: "4.5M", categories: ["Romance", "Yuri", "Drama"], synopsis: "Segredos, dualidades e sentimentos profundos cruzam-se nesta envolvente história de romance.", updated: false },
+            { id: 17, title: "Heart ni Harukaze!!", views: "4.1M", categories: ["Romance", "Yuri", "Comédia"], synopsis: "Momentos leves, confusões amorosas e corações a palpitar nesta doce comédia romântica.", updated: true },
+            { id: 18, title: "Sadistic Beauty Side Story A", views: "3.8M", categories: ["Drama", "Romance", "+18"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas nas histórias paralelas de Sadistic Beauty.", updated: false }
+        ];
+
         const allCategories = ["Recomendados para Você", "Todos", "Webtoon", "One-Shot", "Shounen", "Shoujo", "Seinen", "Josei", "Isekai", "Romance", "Fantasia", "Terror", "Esportes", "Yuri", "Yaoi", "+18"];
         let selectedCategories = [];
-
-        const mangasData = [...top10Data];
-
-        let commentsDB = {
-            1: [{ user: "OtakuSupremo", text: "Hero Killer tem uma das melhores protagonistas dos webtoons atuais!" }]
-        };
-
+        let commentsDB = { 1: [{ user: "OtakuSupremo", text: "Hero Killer tem uma das melhores protagonistas!" }] };
         let currentActiveMangaId = null;
         let pendingFilter = null; 
 
@@ -357,7 +387,6 @@
             }
             if ((currentYear - parseInt(yearInput)) >= 18) {
                 isAdultVerified = true;
-                safeSetStorage('mangaVerseAdultVerified', 'true');
                 document.getElementById('age-verify-modal').classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 errorMsg.classList.add('hidden');
@@ -487,7 +516,6 @@
                 }
                 const score = parseInt(e.target.value);
                 userRatings[currentActiveMangaId] = score;
-                safeSetStorage('mangaVerseRatings', JSON.stringify(userRatings));
                 document.getElementById('user-current-rating').innerText = `${score} de 5 Estrelas`;
                 renderMangas();
             };
@@ -541,7 +569,7 @@
             } else {
                 btnLogin.classList.remove('hidden'); userProfile.classList.add('hidden'); userProfile.classList.remove('flex');
                 if(loggedInComment) loggedInComment.classList.add('hidden');
-                if(loggedOutComment) loggedOutComment.classList.remove('hidden');
+                if(loggedOutComment) loggedOutComment.classList.add('hidden');
             }
         }
 
@@ -555,19 +583,68 @@
         document.getElementById('btn-login-modal').onclick = openLoginModal;
         document.getElementById('close-login').onclick = () => { document.getElementById('login-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; };
 
-        function handleAuth() {
-            const emailInput = document.getElementById('auth-email').value;
-            const passInput = document.getElementById('auth-password').value;
-            if (emailInput && passInput) {
-                currentUser = emailInput;
-                safeSetStorage('mangaVerseUser', currentUser);
-                updateAuthUI();
-                document.getElementById('login-modal').classList.add('hidden');
-                document.body.style.overflow = 'auto';
+        // Autenticação Real Supabase
+        async function handleSupabaseAuth() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const feedback = document.getElementById('auth-feedback');
+            feedback.innerText = "A processar...";
+
+            try {
+                if (authAction === 'signup') {
+                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    feedback.innerText = "Registo efetuado com sucesso! Confirma o teu e-mail se necessário.";
+                } else {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    currentUser = data.user.email;
+                    updateAuthUI();
+                    document.getElementById('login-modal').classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+            } catch (err) {
+                feedback.innerText = "Erro: " + err.message;
             }
         }
 
-        document.getElementById('btn-logout').onclick = () => { currentUser = null; safeRemoveStorage('mangaVerseUser'); updateAuthUI(); };
+        // Recuperação de Senha
+        async function handlePasswordReset() {
+            const emailVal = document.getElementById('auth-email').value;
+            const feedback = document.getElementById('auth-feedback');
+            if (!emailVal) {
+                feedback.innerText = "Por favor, escreve primeiro o teu e-mail acima!";
+                return;
+            }
+            feedback.innerText = "A enviar e-mail de recuperação...";
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(emailVal, {
+                    redirectTo: window.location.href,
+                });
+                if (error) throw error;
+                feedback.innerText = "E-mail de recuperação enviado! Verifica a tua caixa de entrada.";
+            } catch (err) {
+                feedback.innerText = "Erro ao recuperar: " + err.message;
+            }
+        }
+
+        document.getElementById('btn-logout').onclick = async () => {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            updateAuthUI();
+        };
+
+        async function checkSupabaseSession() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = session.user.email;
+                    updateAuthUI();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         const scrollLeftBtn = document.getElementById('scroll-left');
         const scrollRightBtn = document.getElementById('scroll-right');
@@ -578,19 +655,11 @@
         }
 
         function init() {
-            const savedUser = safeGetStorage('mangaVerseUser');
-            if(savedUser) currentUser = savedUser;
-            const savedRatings = safeGetStorage('mangaVerseRatings');
-            if(savedRatings) userRatings = JSON.parse(savedRatings);
-            const verifiedAdult = safeGetStorage('mangaVerseAdultVerified');
-            if(verifiedAdult === 'true') isAdultVerified = true;
-
+            checkSupabaseSession();
             renderTop10();
             renderFilters();
             renderMangas();
-            updateAuthUI();
             loadCrunchyrollNews();
-
             setTimeout(() => { showToast("Hero Killer", "115"); }, 3000);
         }
 
