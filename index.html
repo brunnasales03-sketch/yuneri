@@ -74,7 +74,7 @@
         <div class="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
             <span class="bg-manga-pink text-white text-xs font-bangers px-3 py-1 comic-border animate-pulse">COMUNIDADE VIP 📢</span>
             <p class="text-sm font-bold text-gray-200">Acede ao nosso servidor exclusivo no Discord para membros cadastrados!</p>
-            <a href="https://discord.gg/seu_convite" target="_blank" rel="nofollow noopener" class="bg-manga-discord text-white font-bangers px-4 py-1 comic-border comic-shadow-pink text-sm uppercase tracking-wider hover:bg-white hover:text-black transition-colors">ENTRAR NO DISCORD ➔</a>
+            <button onclick="openCaptchaModal('https://discord.gg/seu_convite')" class="bg-manga-discord text-white font-bangers px-4 py-1 comic-border comic-shadow-pink text-sm uppercase tracking-wider hover:bg-white hover:text-black transition-colors cursor-pointer">ENTRAR NO DISCORD ➔</button>
         </div>
     </section>
 
@@ -113,7 +113,7 @@
                     <p class="font-bangers text-lg text-white mt-1">QUER APOIAR A YUNERI? DIVULGUE SUA MARCA AQUI!</p>
                     <p class="text-xs text-gray-400 font-bold">Espaço publicitário otimizado para máxima conversão e renda.</p>
                 </div>
-                <a href="https://discord.gg/seu_convite" target="_blank" rel="nofollow noopener" class="bg-manga-pink text-white font-bangers px-6 py-2 comic-border comic-shadow-purple uppercase text-sm tracking-wider">ANUNCIE CONOSCO ➔</a>
+                <button onclick="openCaptchaModal('https://discord.gg/seu_convite')" class="bg-manga-pink text-white font-bangers px-6 py-2 comic-border comic-shadow-purple uppercase text-sm tracking-wider cursor-pointer">ANUNCIE CONOSCO ➔</button>
             </div>
         </div>
     </section>
@@ -150,15 +150,33 @@
             </div>
             <p id="age-error-msg" class="text-red-500 font-black text-xs mb-4 hidden">Precisas de ter 18 anos ou mais!</p>
             <div class="flex gap-4">
-                <button onclick="cancelAgeVerification()" class="flex-1 bg-gray-600 text-white font-bangers text-xl py-2 comic-border hover:bg-gray-700">VOLTAR</button>
-                <button onclick="confirmAgeVerification()" class="flex-1 bg-manga-pink text-white font-bangers text-xl py-2 comic-border comic-shadow-purple hover:bg-white hover:text-manga-pink">CONFIRMAR</button>
+                <button onclick="cancelAgeVerification()" class="flex-1 bg-gray-600 text-white font-bangers text-xl py-2 comic-border hover:bg-gray-700 cursor-pointer">VOLTAR</button>
+                <button onclick="confirmAgeVerification()" class="flex-1 bg-manga-pink text-white font-bangers text-xl py-2 comic-border comic-shadow-purple hover:bg-white hover:text-manga-pink cursor-pointer">CONFIRMAR</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL CAPTCHA DE ARRASTAR -->
+    <div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-manga-panel p-6 w-full max-w-sm comic-border comic-shadow-purple text-center relative">
+            <button onclick="closeCaptchaModal()" class="absolute top-2 right-3 text-3xl font-black text-white hover:text-manga-pink">&times;</button>
+            <h3 class="text-2xl font-bangers text-white mb-1 uppercase">VERIFICAÇÃO DE SEGURANÇA</h3>
+            <p class="text-xs text-gray-300 font-bold mb-4">Arrasta o bloco rosa para a zona marcada para desbloquear o acesso!</p>
+            
+            <!-- Área do Puzzle / Captcha de Arrastar -->
+            <div id="captcha-track" class="relative w-full h-20 bg-black comic-border mb-4 flex items-center px-3 overflow-hidden">
+                <div class="absolute right-4 text-xs font-black text-manga-pink uppercase tracking-widest opacity-70">➔ SOLTA AQUI</div>
+                <div id="captcha-slider" draggable="true" class="w-16 h-12 bg-manga-pink comic-border flex items-center justify-center font-bangers text-white text-xl cursor-grab active:cursor-grabbing z-10 select-none shadow-[2px_2px_0px_#000]">
+                    🧩
+                </div>
+            </div>
+            <p id="captcha-status" class="text-xs font-black text-yellow-400">Arrasta o bloco da esquerda para a direita.</p>
         </div>
     </div>
 
     <div id="manga-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-manga-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto comic-border comic-shadow-pink relative flex flex-col md:flex-row">
-            <button id="close-modal" class="absolute top-2 right-4 text-4xl font-black text-white hover:text-manga-pink z-10">&times;</button>
+            <button id="close-modal" class="absolute top-2 right-4 text-4xl font-black text-white hover:text-manga-pink z-10 cursor-pointer">&times;</button>
             <div class="w-full md:w-2/5 p-6 bg-manga-dark border-r-0 md:border-r-4 border-black flex flex-col justify-between">
                 <div>
                     <div id="modal-img-container"></div>
@@ -167,7 +185,7 @@
                     <p id="modal-synopsis" class="text-gray-300 text-sm font-bold leading-relaxed bg-black p-3 comic-border mb-4"></p>
                 </div>
                 <div class="space-y-3">
-                    <a id="modal-discord-btn" href="https://discord.gg/seu_convite" target="_blank" rel="nofollow noopener" class="w-full block bg-manga-discord hover:bg-manga-discordHover text-white font-bangers text-xl text-center py-2 comic-border comic-shadow-pink uppercase transition-colors">💬 Ler / Discutir no Discord</a>
+                    <button onclick="openCaptchaModal('https://discord.gg/seu_convite')" class="w-full block bg-manga-discord hover:bg-manga-discordHover text-white font-bangers text-xl text-center py-2 comic-border comic-shadow-pink uppercase transition-colors cursor-pointer">💬 Ler / Discutir no Discord</button>
                     <div class="bg-black/60 p-3 comic-border">
                         <p class="font-bangers text-lg text-white mb-1">SUA NOTA:</p>
                         <div class="flex items-center justify-between">
@@ -189,11 +207,11 @@
                 <div id="comment-form-container" class="mt-auto">
                     <div id="logged-in-comment" class="hidden flex gap-2">
                         <input type="text" id="new-comment" placeholder="Manda a tua teoria..." class="flex-1 bg-white text-black font-bold p-3 comic-border focus:outline-none">
-                        <button id="btn-send-comment" class="bg-manga-pink text-white font-black px-6 comic-border comic-shadow-purple">ENVIAR</button>
+                        <button id="btn-send-comment" class="bg-manga-pink text-white font-black px-6 comic-border comic-shadow-purple cursor-pointer">ENVIAR</button>
                     </div>
                     <div id="logged-out-comment" class="bg-manga-dark p-4 comic-border border-manga-pink text-center">
                         <p class="font-bold text-white mb-2">Faz login para comentar!</p>
-                        <button onclick="openLoginModal()" class="bg-manga-pink text-white font-bangers text-xl py-2 px-6 comic-border comic-shadow-purple">FAZER LOGIN</button>
+                        <button onclick="openLoginModal()" class="bg-manga-pink text-white font-bangers text-xl py-2 px-6 comic-border comic-shadow-purple cursor-pointer">FAZER LOGIN</button>
                     </div>
                 </div>
             </div>
@@ -203,7 +221,7 @@
     <!-- Modal de Autenticação Yuneri -->
     <div id="login-modal" class="fixed inset-0 bg-black/90 hidden z-[60] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-manga-pink p-8 w-full max-w-md comic-border comic-shadow-purple relative">
-            <button id="close-login" class="absolute top-2 right-4 text-4xl font-black text-black hover:text-white">&times;</button>
+            <button id="close-login" class="absolute top-2 right-4 text-4xl font-black text-black hover:text-white cursor-pointer">&times;</button>
             <h2 class="text-4xl font-bangers text-black text-center mb-2 uppercase">CONTA YUNERI</h2>
             <p id="auth-mode-desc" class="text-black font-bold text-xs text-center mb-6">Insere o teu e-mail e senha para Entrar, Registar ou Recuperar!</p>
             <form onsubmit="event.preventDefault(); handleSupabaseAuth();" class="space-y-4">
@@ -217,10 +235,10 @@
                 </div>
                 <div class="flex flex-col gap-2 pt-2">
                     <div class="flex gap-2">
-                        <button type="submit" onclick="authAction='signin'" class="flex-1 bg-black text-manga-pink font-bangers text-xl py-2 comic-border hover:bg-manga-purple hover:text-white transition-colors">ENTRAR</button>
-                        <button type="submit" onclick="authAction='signup'" class="flex-1 bg-white text-black font-bangers text-xl py-2 comic-border hover:bg-black hover:text-white transition-colors">REGISTAR</button>
+                        <button type="submit" onclick="authAction='signin'" class="flex-1 bg-black text-manga-pink font-bangers text-xl py-2 comic-border hover:bg-manga-purple hover:text-white transition-colors cursor-pointer">ENTRAR</button>
+                        <button type="submit" onclick="authAction='signup'" class="flex-1 bg-white text-black font-bangers text-xl py-2 comic-border hover:bg-black hover:text-white transition-colors cursor-pointer">REGISTAR</button>
                     </div>
-                    <button type="button" onclick="handlePasswordReset()" class="w-full bg-yellow-400 text-black font-bangers text-sm py-1.5 comic-border hover:bg-yellow-500 transition-colors uppercase tracking-wider">Esqueci a minha senha</button>
+                    <button type="button" onclick="handlePasswordReset()" class="w-full bg-yellow-400 text-black font-bangers text-sm py-1.5 comic-border hover:bg-yellow-500 transition-colors uppercase tracking-wider cursor-pointer">Esqueci a minha senha</button>
                 </div>
             </form>
             <p id="auth-feedback" class="text-black font-black text-xs text-center mt-4"></p>
@@ -250,8 +268,106 @@
         let userRatings = {}; 
         let isAdultVerified = false; 
         let authAction = 'signin';
+        let targetUrlToOpen = '';
 
-        // TOP 10 Mais Lidos (Exclusivo para o carrossel de destaque - de 1 a 10)
+        // Lógica do Captcha de Arrastar
+        const slider = document.getElementById('captcha-slider');
+        const track = document.getElementById('captcha-track');
+        const statusText = document.getElementById('captcha-status');
+        let isDragging = false;
+        let startX = 0;
+
+        function openCaptchaModal(url) {
+            targetUrlToOpen = url;
+            slider.style.transform = `translateX(0px)`;
+            statusText.innerText = "Arrasta o bloco da esquerda para a direita.";
+            statusText.className = "text-xs font-black text-yellow-400";
+            document.getElementById('captcha-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCaptchaModal() {
+            document.getElementById('captcha-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        slider.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            let diff = e.clientX - startX;
+            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
+            if (diff < 0) diff = 0;
+            if (diff > maxTrackWidth) diff = maxTrackWidth;
+            slider.style.transform = `translateX(${diff}px)`;
+
+            if (diff >= maxTrackWidth - 5) {
+                isDragging = false;
+                statusText.innerText = "Verificado com sucesso! A abrir...";
+                statusText.className = "text-xs font-black text-green-400";
+                setTimeout(() => {
+                    closeCaptchaModal();
+                    window.open(targetUrlToOpen, '_blank');
+                }, 800);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            let currentTransform = slider.style.transform;
+            let match = currentTransform.match(/translateX\(([-\d.]+)px\)/);
+            let currentX = match ? parseFloat(match[1]) : 0;
+            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
+            
+            if (currentX < maxTrackWidth - 5) {
+                slider.style.transform = `translateX(0px)`;
+                statusText.innerText = "Tenta outra vez! Chega até ao fim.";
+            }
+        });
+
+        // Suporte a Touch (Telemóveis e Tablets)
+        slider.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            let diff = e.touches[0].clientX - startX;
+            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
+            if (diff < 0) diff = 0;
+            if (diff > maxTrackWidth) diff = maxTrackWidth;
+            slider.style.transform = `translateX(${diff}px)`;
+
+            if (diff >= maxTrackWidth - 5) {
+                isDragging = false;
+                statusText.innerText = "Verificado com sucesso! A abrir...";
+                statusText.className = "text-xs font-black text-green-400";
+                setTimeout(() => {
+                    closeCaptchaModal();
+                    window.open(targetUrlToOpen, '_blank');
+                }, 800);
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            let currentTransform = slider.style.transform;
+            let match = currentTransform.match(/translateX\(([-\d.]+)px\)/);
+            let currentX = match ? parseFloat(match[1]) : 0;
+            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
+            
+            if (currentX < maxTrackWidth - 5) {
+                slider.style.transform = `translateX(0px)`;
+                statusText.innerText = "Tenta outra vez! Chega até ao fim.";
+            }
+        });
+
         const top10Data = [
             { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
             { id: 2, title: "One Piece", views: "10.5M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "A jornada épica de Luffy em busca do tesouro lendário One Piece para se tornar o Rei dos Piratas.", updated: true },
@@ -265,7 +381,6 @@
             { id: 10, title: "Blue Lock", views: "3.5M", categories: ["Esportes", "Shounen"], synopsis: "O projeto radical para criar o maior artilheiro do Japão.", updated: true }
         ];
 
-        // Catálogo Completo (Com contagem independente de IDs de 1 até ao total de obras)
         const mangasData = [
             { id: 1, title: "Hero Killer", views: "12.4M", categories: ["Webtoon", "Ação", "Fantasia"], synopsis: "Em um mundo onde heróis egoístas e corruptos governam, uma jovem chamada Ihwa busca vingança absoluta após perder sua irmã.", updated: true },
             { id: 2, title: "One Piece", views: "10.5M", categories: ["Shounen", "Fantasia", "Ação"], synopsis: "A jornada épica de Luffy em busca do tesouro lendário One Piece para se tornar o Rei dos Piratas.", updated: true },
@@ -280,13 +395,13 @@
             { id: 11, title: "Me apaixonei pela vilã", views: "6.8M", categories: ["Isekai", "Romance", "Yuri", "Fantasia"], synopsis: "Uma jovem reencarna como a protagonista do seu jogo favorito e decide conquistar a antagonista Claire François!", updated: true },
             { id: 12, title: "O cara que estou a fim não é um cara", views: "6.1M", categories: ["Romance", "Yuri", "Slice of Life"], synopsis: "Uma garota apaixona-se pelo misterioso atendente de uma loja de discos, sem saber que se trata de uma colega de turma disfarçada.", updated: true },
             { id: 13, title: "Mahou Shoujo ni Akogarete", views: "5.7M", categories: ["Magical Girl", "Comédia", "+18"], synopsis: "Uma fã de garotas mágicas acaba por se juntar acidentalmente às forças do mal como uma sádica líder de vilãs.", updated: false },
-            { id: 14, title: "Her Pet (Pito)", views: "5.2M", categories: ["Romance", "Drama", "+18","Yuri"], synopsis: "Uma intensa e complexa relação de dependência emocional e dinâmica de poder entre personagens marcantes.", updated: false },
+            { id: 14, title: "Her Pet (Pito)", views: "5.2M", categories: ["Romance", "Drama", "+18", "Yuri"], synopsis: "Uma intensa e complexa relação de dependência emocional e dinâmica de poder entre personagens marcantes.", updated: false },
             { id: 15, title: "A Story about a Very Lonely Female CEO who Falls for a Lesbian Prostitute in Seconds", views: "4.9M", categories: ["Romance", "Yuri", "Drama"], synopsis: "A vida de uma executiva de sucesso muda drasticamente num piscar de olhos ao cruzar-se com alguém inesperado.", updated: true },
             { id: 16, title: "Alter Ego", views: "4.5M", categories: ["Romance", "Yuri", "Drama"], synopsis: "Segredos, dualidades e sentimentos profundos cruzam-se nesta envolvente história de romance.", updated: false },
             { id: 17, title: "Heart ni Harukaze!!", views: "4.1M", categories: ["Romance", "Yuri", "Comédia"], synopsis: "Momentos leves, confusões amorosas e corações a palpitar nesta doce comédia romântica.", updated: true },
             { id: 18, title: "Sadistic Beauty Side Story A", views: "3.8M", categories: ["Drama", "Romance", "+18"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas nas histórias paralelas de Sadistic Beauty.", updated: false },
-            { id: 19, title: "Sadistic Beauty Side Story", views: "3.8M", categories: ["Drama", "Romance", "+18"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas nas histórias paralelas de Sadistic Beauty.", updated: false },
-            { id: 20, title: "Sadistic Beauty Side Story B", views: "3.8M", categories: ["Drama", "Romance", "+18", "Yaoi"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas nas histórias paralelas de Sadistic Beauty.", updated: false },
+            { id: 19, title: "Sadistic Beauty Side Story", views: "3.8M", categories: ["Drama", "Romance", "+18"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas.", updated: false },
+            { id: 20, title: "Sadistic Beauty Side Story B", views: "3.8M", categories: ["Drama", "Romance", "+18", "Yaoi"], synopsis: "Desafios psicológicos, desejos ocultos e dinâmicas profundas.", updated: false }
         ];
 
         const allCategories = ["Recomendados para Você", "Todos", "Webtoon", "One-Shot", "Shounen", "Shoujo", "Seinen", "Josei", "Isekai", "Romance", "Fantasia", "Terror", "Esportes", "Yuri", "Yaoi", "+18"];
@@ -472,7 +587,7 @@
                             ${manga.categories.map(cat => `<span class="bg-manga-purple text-white text-[10px] font-black px-2 py-1 comic-border uppercase">${cat}</span>`).join('')}
                         </div>
                         <h4 class="font-bangers text-xl mb-2 text-white group-hover:text-manga-pink transition-colors tracking-wide">${manga.title}</h4>
-                        <button class="w-full mt-auto bg-white text-black font-black py-2 comic-border hover:bg-manga-pink hover:text-white transition-colors uppercase">Discutir / Avaliar</button>
+                        <button class="w-full mt-auto bg-white text-black font-black py-2 comic-border hover:bg-manga-pink hover:text-white transition-colors uppercase cursor-pointer">Discutir / Avaliar</button>
                     </div>
                 `;
                 card.onclick = () => {
@@ -571,11 +686,12 @@
             } else {
                 btnLogin.classList.remove('hidden'); userProfile.classList.add('hidden'); userProfile.classList.remove('flex');
                 if(loggedInComment) loggedInComment.classList.add('hidden');
-                if(loggedOutComment) loggedOutComment.classList.add('hidden');
+                if(loggedOutComment) loggedOutComment.classList.remove('hidden');
             }
         }
 
         function openLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('login-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             const modal = document.getElementById('manga-modal');
