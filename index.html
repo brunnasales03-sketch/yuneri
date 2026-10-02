@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Importando a biblioteca do Supabase para JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script Oficial do Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -56,14 +58,14 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-4xl font-bangers tracking-widest text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">YUNERI <span class="text-2xl text-manga-purple drop-shadow-none">ゆねり</span></h1>
             <div id="auth-section">
-                <button id="btn-login-modal" class="bg-manga-purple text-white font-black py-2 px-6 comic-border comic-shadow-pink uppercase tracking-wider">Entrar / Registar</button>
+                <button id="btn-login-modal" class="bg-manga-purple text-white font-black py-2 px-6 comic-border comic-shadow-pink uppercase tracking-wider cursor-pointer">Entrar / Registar</button>
                 <div id="user-profile" class="hidden flex items-center gap-4">
                     <div class="text-right">
                         <p class="text-xs font-bold text-black uppercase">Membro Oficial</p>
                         <p id="user-email-display" class="font-black text-white drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">usuario@email.com</p>
                     </div>
                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=9d00ff" alt="Avatar" class="w-12 h-12 rounded-full comic-border bg-white">
-                    <button id="btn-logout" class="bg-white text-black font-black py-2 px-4 comic-border hover:bg-gray-200">Sair</button>
+                    <button id="btn-logout" class="bg-white text-black font-black py-2 px-4 comic-border hover:bg-gray-200 cursor-pointer">Sair</button>
                 </div>
             </div>
         </div>
@@ -159,11 +161,10 @@
     <!-- MODAL CAPTCHA DE ARRASTAR -->
     <div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-manga-panel p-6 w-full max-w-sm comic-border comic-shadow-purple text-center relative">
-            <button onclick="closeCaptchaModal()" class="absolute top-2 right-3 text-3xl font-black text-white hover:text-manga-pink">&times;</button>
+            <button onclick="closeCaptchaModal()" class="absolute top-2 right-3 text-3xl font-black text-white hover:text-manga-pink cursor-pointer">&times;</button>
             <h3 class="text-2xl font-bangers text-white mb-1 uppercase">VERIFICAÇÃO DE SEGURANÇA</h3>
             <p class="text-xs text-gray-300 font-bold mb-4">Arrasta o bloco rosa para a zona marcada para desbloquear o acesso!</p>
             
-            <!-- Área do Puzzle / Captcha de Arrastar -->
             <div id="captcha-track" class="relative w-full h-20 bg-black comic-border mb-4 flex items-center px-3 overflow-hidden">
                 <div class="absolute right-4 text-xs font-black text-manga-pink uppercase tracking-widest opacity-70">➔ SOLTA AQUI</div>
                 <div id="captcha-slider" draggable="true" class="w-16 h-12 bg-manga-pink comic-border flex items-center justify-center font-bangers text-white text-xl cursor-grab active:cursor-grabbing z-10 select-none shadow-[2px_2px_0px_#000]">
@@ -218,9 +219,9 @@
         </div>
     </div>
 
-    <!-- Modal de Autenticação Yuneri -->
+    <!-- Modal de Autenticação Yuneri com Cloudflare Turnstile -->
     <div id="login-modal" class="fixed inset-0 bg-black/90 hidden z-[60] flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-manga-pink p-8 w-full max-w-md comic-border comic-shadow-purple relative">
+        <div class="bg-manga-pink p-8 w-full max-w-md comic-border comic-shadow-purple relative max-h-[90vh] overflow-y-auto">
             <button id="close-login" class="absolute top-2 right-4 text-4xl font-black text-black hover:text-white cursor-pointer">&times;</button>
             <h2 class="text-4xl font-bangers text-black text-center mb-2 uppercase">CONTA YUNERI</h2>
             <p id="auth-mode-desc" class="text-black font-bold text-xs text-center mb-6">Insere o teu e-mail e senha para Entrar, Registar ou Recuperar!</p>
@@ -233,6 +234,12 @@
                     <label class="block text-black font-black mb-1">Senha</label>
                     <input type="password" id="auth-password" class="w-full p-3 border-4 border-black font-bold text-black bg-white">
                 </div>
+
+                <!-- Widget Cloudflare Turnstile -->
+                <div class="py-2 flex justify-center">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAAFMSfmgNm-Do6vg5"></div>
+                </div>
+
                 <div class="flex flex-col gap-2 pt-2">
                     <div class="flex gap-2">
                         <button type="submit" onclick="authAction='signin'" class="flex-1 bg-black text-manga-pink font-bangers text-xl py-2 comic-border hover:bg-manga-purple hover:text-white transition-colors cursor-pointer">ENTRAR</button>
@@ -515,7 +522,7 @@
                 }
             } else {
                 errorMsg.innerText = "Precisas de ter 18 anos ou mais!";
-                errorMsg.classList.remove('hidden');
+                errorMsg.classList.add('hidden');
             }
         }
 
@@ -691,7 +698,6 @@
         }
 
         function openLoginModal() {
-            document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('login-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             const modal = document.getElementById('manga-modal');
@@ -701,7 +707,7 @@
         document.getElementById('btn-login-modal').onclick = openLoginModal;
         document.getElementById('close-login').onclick = () => { document.getElementById('login-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; };
 
-        // Autenticação Real Supabase
+        // Autenticação Real Supabase com Turnstile
         async function handleSupabaseAuth() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -710,19 +716,34 @@
 
             try {
                 if (authAction === 'signup') {
-                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                    const { data, error } = await supabaseClient.auth.signUp({ 
+                        email, 
+                        password,
+                        options: {
+                            captchaToken: turnstile.getResponse()
+                        }
+                    });
                     if (error) throw error;
                     feedback.innerText = "Registo efetuado com sucesso! Confirma o teu e-mail se necessário.";
                 } else {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ 
+                        email, 
+                        password,
+                        options: {
+                            captchaToken: turnstile.getResponse()
+                        }
+                    });
                     if (error) throw error;
                     currentUser = data.user.email;
                     updateAuthUI();
                     document.getElementById('login-modal').classList.add('hidden');
                     document.body.style.overflow = 'auto';
                 }
+                // Limpar o Turnstile após sucesso
+                if (typeof turnstile !== 'undefined') turnstile.reset();
             } catch (err) {
                 feedback.innerText = "Erro: " + err.message;
+                if (typeof turnstile !== 'undefined') turnstile.reset();
             }
         }
 
@@ -738,11 +759,14 @@
             try {
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(emailVal, {
                     redirectTo: window.location.href,
+                    captchaToken: turnstile.getResponse()
                 });
                 if (error) throw error;
                 feedback.innerText = "E-mail de recuperação enviado! Verifica a tua caixa de entrada.";
+                if (typeof turnstile !== 'undefined') turnstile.reset();
             } catch (err) {
                 feedback.innerText = "Erro ao recuperar: " + err.message;
+                if (typeof turnstile !== 'undefined') turnstile.reset();
             }
         }
 
