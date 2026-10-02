@@ -26,7 +26,7 @@
         <div class="text-2xl font-black italic tracking-wider text-manga-pink">
             YUNERI <span class="text-xs text-white font-normal">ゆねり</span>
         </div>
-        <button onclick="openCaptchaModal()" class="bg-manga-pink text-white font-bold px-6 py-2 rounded shadow-lg hover:opacity-90 transition">
+        <button onclick="openCaptchaModal()" class="bg-manga-pink text-white font-bold px-6 py-2 rounded shadow-lg hover:opacity-90 transition cursor-pointer">
             ENTRAR / REGISTAR
         </button>
     </header>
@@ -86,11 +86,25 @@
         </div>
     </main>
 
+    <!-- Secção de Patrocínio / Anúncios -->
+    <section class="p-6">
+        <div class="border-2 border-dashed border-manga-pink bg-manga-dark p-6 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">PATROCINADO</span>
+                <h4 class="font-bold text-lg mt-2">QUER APOIAR A YUNERI? DIVULGUE SUA MARCA AQUI!</h4>
+                <p class="text-xs text-gray-400">Espaço publicitário otimizado para máxima conversão e renda.</p>
+            </div>
+            <button class="bg-manga-pink text-white font-bold px-6 py-3 rounded hover:opacity-90 transition whitespace-nowrap">
+                ANUNCIE CONOSCO →
+            </button>
+        </div>
+    </section>
+
     <!-- MODAL CLOUDFLARE TURNSTILE OFICIAL -->
     <div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-manga-dark border border-purple-900/50 p-6 rounded-2xl max-w-md w-full relative text-center shadow-2xl">
             <!-- Botão de Fechar -->
-            <button onclick="closeCaptchaModal()" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            <button onclick="closeCaptchaModal()" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer">&times;</button>
             
             <h3 class="text-2xl font-black text-white mb-1 uppercase tracking-wider">VERIFICAÇÃO DE SEGURANÇA</h3>
             <p class="text-xs text-gray-300 font-bold mb-6">Confirma que és humano para desbloquear o acesso ao Yuneri!</p>
