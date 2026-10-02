@@ -159,19 +159,26 @@
     </div>
 
     <!-- MODAL CAPTCHA DE ARRASTAR CORRIGIDO -->
-    <div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-manga-panel p-6 w-full max-w-sm comic-border comic-shadow-purple text-center relative">
-            <button onclick="closeCaptchaModal()" class="absolute top-2 right-3 text-3xl font-black text-white hover:text-manga-pink cursor-pointer">&times;</button>
-            <h3 class="text-2xl font-bangers text-white mb-1 uppercase">VERIFICAÇÃO DE SEGURANÇA</h3>
-            <p class="text-xs text-gray-300 font-bold mb-4">Arrasta o bloco rosa para a zona marcada para desbloquear o acesso!</p>
-            
-            <div id="captcha-track" class="relative w-full h-20 bg-black comic-border mb-4 flex items-center px-3 overflow-hidden select-none">
-                <div class="absolute right-4 text-xs font-black text-manga-pink uppercase tracking-widest opacity-70">➔ SOLTA AQUI</div>
-                <div id="captcha-slider" class="w-16 h-12 bg-manga-pink comic-border flex items-center justify-center font-bangers text-white text-xl cursor-grab active:cursor-grabbing z-10 select-none shadow-[2px_2px_0px_#000]" style="touch-action: none;">
-                    🧩
-                </div>
-            </div>
-            <p id="captcha-status" class="text-xs font-black text-yellow-400">Arrasta o bloco da esquerda para a direita.</p>
+   <!-- MODAL CLOUDFLARE TURNSTILE OFICIAL -->
+<div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-[#120a1f] border border-purple-900/50 p-6 rounded-2xl max-w-md w-full relative text-center shadow-2xl">
+        <!-- Botão de Fechar -->
+        <button onclick="closeCaptchaModal()" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+        
+        <h3 class="text-2xl font-bangers text-white mb-1 uppercase tracking-wider">VERIFICAÇÃO DE SEGURANÇA</h3>
+        <p class="text-xs text-gray-300 font-bold mb-6">Confirma que és humano para desbloquear o acesso ao Yuneri!</p>
+        
+        <!-- Widget Oficial do Turnstile -->
+        <div class="flex justify-center my-4">
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAAFMSfgNm-Do6..." data-theme="dark"></div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-4">Protegido por Cloudflare Turnstile</p>
+    </div>
+</div>
+
+<!-- Script oficial do Cloudflare Turnstile -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
         </div>
     </div>
 
