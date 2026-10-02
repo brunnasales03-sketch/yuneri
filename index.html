@@ -158,16 +158,16 @@
         </div>
     </div>
 
-    <!-- MODAL CAPTCHA DE ARRASTAR -->
+    <!-- MODAL CAPTCHA DE ARRASTAR CORRIGIDO -->
     <div id="captcha-modal" class="fixed inset-0 bg-black/90 hidden z-[90] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-manga-panel p-6 w-full max-w-sm comic-border comic-shadow-purple text-center relative">
             <button onclick="closeCaptchaModal()" class="absolute top-2 right-3 text-3xl font-black text-white hover:text-manga-pink cursor-pointer">&times;</button>
             <h3 class="text-2xl font-bangers text-white mb-1 uppercase">VERIFICAÇÃO DE SEGURANÇA</h3>
             <p class="text-xs text-gray-300 font-bold mb-4">Arrasta o bloco rosa para a zona marcada para desbloquear o acesso!</p>
             
-            <div id="captcha-track" class="relative w-full h-20 bg-black comic-border mb-4 flex items-center px-3 overflow-hidden">
+            <div id="captcha-track" class="relative w-full h-20 bg-black comic-border mb-4 flex items-center px-3 overflow-hidden select-none">
                 <div class="absolute right-4 text-xs font-black text-manga-pink uppercase tracking-widest opacity-70">➔ SOLTA AQUI</div>
-                <div id="captcha-slider" draggable="true" class="w-16 h-12 bg-manga-pink comic-border flex items-center justify-center font-bangers text-white text-xl cursor-grab active:cursor-grabbing z-10 select-none shadow-[2px_2px_0px_#000]">
+                <div id="captcha-slider" class="w-16 h-12 bg-manga-pink comic-border flex items-center justify-center font-bangers text-white text-xl cursor-grab active:cursor-grabbing z-10 select-none shadow-[2px_2px_0px_#000]" style="touch-action: none;">
                     🧩
                 </div>
             </div>
@@ -277,15 +277,17 @@
         let authAction = 'signin';
         let targetUrlToOpen = '';
 
-        // Lógica do Captcha de Arrastar
+        // Lógica Robusta e Fluida do Captcha de Arrastar (Pointer Events)
         const slider = document.getElementById('captcha-slider');
         const track = document.getElementById('captcha-track');
         const statusText = document.getElementById('captcha-status');
         let isDragging = false;
         let startX = 0;
+        let currentTranslate = 0;
 
         function openCaptchaModal(url) {
             targetUrlToOpen = url;
+            currentTranslate = 0;
             slider.style.transform = `translateX(0px)`;
             statusText.innerText = "Arrasta o bloco da esquerda para a direita.";
             statusText.className = "text-xs font-black text-yellow-400";
@@ -298,17 +300,19 @@
             document.body.style.overflow = 'auto';
         }
 
-        slider.addEventListener('mousedown', (e) => {
+        slider.addEventListener('pointerdown', (e) => {
             isDragging = true;
             startX = e.clientX;
+            slider.setPointerCapture(e.pointerId);
         });
 
-        window.addEventListener('mousemove', (e) => {
+        slider.addEventListener('pointermove', (e) => {
             if (!isDragging) return;
             let diff = e.clientX - startX;
             let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
             if (diff < 0) diff = 0;
             if (diff > maxTrackWidth) diff = maxTrackWidth;
+            currentTranslate = diff;
             slider.style.transform = `translateX(${diff}px)`;
 
             if (diff >= maxTrackWidth - 5) {
@@ -322,57 +326,16 @@
             }
         });
 
-        window.addEventListener('mouseup', () => {
+        slider.addEventListener('pointerup', (e) => {
             if (!isDragging) return;
             isDragging = false;
-            let currentTransform = slider.style.transform;
-            let match = currentTransform.match(/translateX\(([-\d.]+)px\)/);
-            let currentX = match ? parseFloat(match[1]) : 0;
             let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
             
-            if (currentX < maxTrackWidth - 5) {
+            if (currentTranslate < maxTrackWidth - 5) {
                 slider.style.transform = `translateX(0px)`;
                 statusText.innerText = "Tenta outra vez! Chega até ao fim.";
             }
-        });
-
-        // Suporte a Touch (Telemóveis e Tablets)
-        slider.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            startX = e.touches[0].clientX;
-        });
-
-        window.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            let diff = e.touches[0].clientX - startX;
-            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
-            if (diff < 0) diff = 0;
-            if (diff > maxTrackWidth) diff = maxTrackWidth;
-            slider.style.transform = `translateX(${diff}px)`;
-
-            if (diff >= maxTrackWidth - 5) {
-                isDragging = false;
-                statusText.innerText = "Verificado com sucesso! A abrir...";
-                statusText.className = "text-xs font-black text-green-400";
-                setTimeout(() => {
-                    closeCaptchaModal();
-                    window.open(targetUrlToOpen, '_blank');
-                }, 800);
-            }
-        });
-
-        window.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            let currentTransform = slider.style.transform;
-            let match = currentTransform.match(/translateX\(([-\d.]+)px\)/);
-            let currentX = match ? parseFloat(match[1]) : 0;
-            let maxTrackWidth = track.clientWidth - slider.clientWidth - 24;
-            
-            if (currentX < maxTrackWidth - 5) {
-                slider.style.transform = `translateX(0px)`;
-                statusText.innerText = "Tenta outra vez! Chega até ao fim.";
-            }
+            try { slider.releasePointerCapture(e.pointerId); } catch(err) {}
         });
 
         const top10Data = [
@@ -739,7 +702,6 @@
                     document.getElementById('login-modal').classList.add('hidden');
                     document.body.style.overflow = 'auto';
                 }
-                // Limpar o Turnstile após sucesso
                 if (typeof turnstile !== 'undefined') turnstile.reset();
             } catch (err) {
                 feedback.innerText = "Erro: " + err.message;
